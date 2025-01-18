@@ -1,0 +1,200 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harley's Clan Forum - Report System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #1e1e1e;
+    }
+
+    h1 {
+      text-align: center;
+      color: #fff;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    form {
+      max-width: 600px;
+      margin: 20px auto;
+      background: rgba(50, 50, 50, 0.9);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.6);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    input, select, textarea, button {
+      width: calc(100% - 20px);
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 4px;
+      box-sizing: border-box;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+      background-color: #f9f9f9;
+    }
+
+    button {
+      background: rgba(0, 123, 255, 0.8);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    button:hover {
+      background: rgba(0, 86, 179, 0.8);
+      box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .terms-wrapper {
+      display: flex;
+      align-items: center;
+      font-size: 0.85rem;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+
+    .terms-wrapper input {
+      margin-right: 5px;
+      width: 16px;
+      height: 16px;
+    }
+
+    .error {
+      color: #ff4d4d;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <form id="report-form">
+    <h1>Harley's Clan Forum - Report System</h1>
+    
+    <label for="email">Your Email</label>
+    <input type="email" id="email" name="email" placeholder="Your Email" required>
+
+    <label for="name">Your Name or Nickname</label>
+    <input type="text" id="name" name="name" placeholder="Your Name/Nickname" required>
+
+    <label for="date">Date of Incident</label>
+    <input type="date" id="date" name="date" required>
+
+    <label for="report-type">Report Type</label>
+    <select id="report-type" name="report-type" required>
+      <option value="" disabled selected>Select a Report Type</option>
+      <option value="user">Report a User</option>
+      <option value="post">Report a Post</option>
+    </select>
+
+    <label for="report-url">Profile/Post URL</label>
+    <input type="url" id="report-url" name="report-url" placeholder="Enter the URL (e.g., https://forum.harleytg.online/u/username or /p/post-id)" required>
+
+    <label for="description">Description of the Issue</label>
+    <textarea id="description" name="description" placeholder="Describe what happened..." required></textarea>
+
+    <label for="proof">Upload Proof (optional, Max 8MB)</label>
+    <input type="file" id="proof" name="proof" accept=".jpg,.jpeg,.png,.mp4,.mp3,.pdf,.docx,.doc,.avi" multiple>
+
+    <div class="terms-wrapper">
+      <input type="checkbox" id="agree" name="agree" required>
+      <label for="agree">
+        I agree to the <a href="https://forum.harleytg.online/p/5-terms-of-service" target="_blank">Terms & Conditions</a> and <a href="https://forum.harleytg.online/p/4-privicy-policy" target="_blank">Privacy Policy</a>.
+      </label>
+    </div>
+
+    <button type="submit">Submit Report</button>
+  </form>
+
+  <script>
+    document.getElementById("report-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      // Generate a unique incident ID (only random number)
+      const incidentId = Math.floor(Math.random() * 10000);
+
+      const formData = new FormData(event.target);
+      const email = formData.get("email");
+      const name = formData.get("name");
+      const date = formData.get("date");
+      const reportType = formData.get("report-type");
+      const reportUrl = formData.get("report-url");
+      const description = formData.get("description");
+      const files = formData.getAll("proof");
+
+      const webhookUrl = "https://discord.com/api/webhooks/1330314806888239185/u7JTw1Nny-Mu7Ht-SKcvfPcGVTxJ-jELo_21xKkk-hqmD7L1aNAI8HIFGSZPwwtvzJho";
+
+      try {
+        const payload = {
+          username: "Harley's Clan Forum - Report System",
+          embeds: [
+            {
+              title: "New Report Submitted",
+              fields: [
+                { name: "Incident ID", value: incidentId, inline: true },
+                { name: "Reporter Email", value: email, inline: true },
+                { name: "Name/Nickname", value: name, inline: true },
+                { name: "Date of Incident", value: date, inline: true },
+                { name: "Report Type", value: reportType === "user" ? "User" : "Post", inline: true },
+                { name: "URL", value: reportUrl, inline: false },
+                { name: "Description", value: description, inline: false }
+              ],
+              footer: { text: `Incident ID: ${incidentId}` },
+              timestamp: new Date().toISOString()
+            }
+          ]
+        };
+
+        // Send initial text payload
+        const textResponse = await fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!textResponse.ok) {
+          throw new Error("Failed to submit text information");
+        }
+
+        // Send each file as a separate request
+        for (const file of files) {
+          if (file.size > 8 * 1024 * 1024) {
+            alert("One of your files exceeds the 8MB limit.");
+            continue;
+          }
+
+          const fileData = new FormData();
+          fileData.append("file", file);
+
+          await fetch(webhookUrl, {
+            method: "POST",
+            body: fileData
+          });
+        }
+
+        alert(`Your report has been submitted successfully. Incident ID: ${incidentId}`);
+        event.target.reset();
+      } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred. Please try again later.");
+      }
+    });
+  </script>
+</body>
+</html>
